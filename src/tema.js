@@ -1,0 +1,18 @@
+export const COR = {
+  fundo: ['#141A0C', '#0B0D10', '#08090B'],
+  texto: '#F5F7FA',
+  sub: 'rgba(245,247,250,0.62)',
+  fraco: 'rgba(245,247,250,0.38)',
+  vidro: 'rgba(255,255,255,0.055)',
+  vidroForte: 'rgba(255,255,255,0.09)',
+  borda: 'rgba(255,255,255,0.09)',
+  acento: '#C8F031',
+  acentoTexto: '#0B0D10',
+  acentoFundo: 'rgba(200,240,49,0.10)',
+  acentoBorda: 'rgba(200,240,49,0.35)',
+  agua: '#4FC3F7',
+  vermelho: '#FF6B6B',
+  p: '#FF8A65',
+  c: '#FFD166',
+  g: '#7EE0C3',
+};
