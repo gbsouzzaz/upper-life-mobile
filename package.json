@@ -1,0 +1,15 @@
+{
+  "name": "upper-life",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "setup": "expo install react react-native expo-status-bar expo-linear-gradient expo-blur @react-native-async-storage/async-storage react-native-safe-area-context react-native-svg",
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios"
+  },
+  "dependencies": {
+    "expo": "~58.0.0"
+  }
+}

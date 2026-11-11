@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "UPPER LIFE",
+    "slug": "upper-life",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B0D10",
+    "ios": { "supportsTablet": false },
+    "android": { "backgroundColor": "#0B0D10" }
+  }
+}
