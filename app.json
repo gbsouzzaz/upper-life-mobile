@@ -2,11 +2,21 @@
   "expo": {
     "name": "UPPER LIFE",
     "slug": "upper-life",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#0B0D10",
-    "ios": { "supportsTablet": false },
-    "android": { "backgroundColor": "#0B0D10" }
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "backgroundColor": "#0B0D10"
+    },
+    "scheme": "upperlife",
+    "web": {
+      "bundler": "metro",
+      "name": "UPPER LIFE",
+      "backgroundColor": "#0B0D10"
+    }
   }
 }

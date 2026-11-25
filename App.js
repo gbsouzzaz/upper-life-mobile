@@ -15,13 +15,18 @@ import Nutricao from './src/telas/Nutricao';
 import Perfil from './src/telas/Perfil';
 import SessaoAtiva from './src/telas/SessaoAtiva';
 import Treinos from './src/telas/Treinos';
+import Autenticacao from './src/telas/Autenticacao';
+import { carregarSessao, encerrarSessao } from './src/auth';
 import { ALIMENTOS, MODELOS_TREINO } from './src/dados';
 import { CHAVE, uid, num, fmt, hoje, diaOffset, criarItem, somar, calcularMetas, novaSerie, ESTADO_INICIAL } from './src/utils';
 import { COR } from './src/tema';
 import { Fundo } from './src/componentes/ui';
 import { s } from './src/estilos';
 
-function Principal() {
+const LEGADO_MIGRADO = 'upperlife:legadoMigrado';
+
+function Principal({ usuario, sair }) {
+  const chave = `${CHAVE}:${usuario.email}`; // cada conta tem os próprios dados
   const [dados, setDados] = useState(ESTADO_INICIAL);
   const [carregado, setCarregado] = useState(false);
   const [aba, setAba] = useState('home');
@@ -33,17 +38,22 @@ function Principal() {
   useEffect(() => {
     (async () => {
       try {
-        const bruto = await AsyncStorage.getItem(CHAVE);
-        if (bruto) {
-          const salvo = JSON.parse(bruto);
-          setDados({ ...ESTADO_INICIAL, ...salvo, perfil: { ...ESTADO_INICIAL.perfil, ...(salvo.perfil || {}) } });
+        let bruto = await AsyncStorage.getItem(chave);
+        // dados de antes do login (versão 1.0) vão para a primeira conta que entrar
+        if (!bruto && !(await AsyncStorage.getItem(LEGADO_MIGRADO))) {
+          bruto = await AsyncStorage.getItem(CHAVE);
+          await AsyncStorage.setItem(LEGADO_MIGRADO, '1');
         }
+        const salvo = bruto ? JSON.parse(bruto) : {};
+        const perfil = { ...ESTADO_INICIAL.perfil, ...(salvo.perfil || {}) };
+        if (!perfil.nome) perfil.nome = usuario.nome.split(' ')[0];
+        setDados({ ...ESTADO_INICIAL, ...salvo, perfil });
       } catch (e) { /* começa do zero */ }
       setCarregado(true);
     })();
   }, []);
   useEffect(() => {
-    if (carregado) AsyncStorage.setItem(CHAVE, JSON.stringify(dados)).catch(() => {});
+    if (carregado) AsyncStorage.setItem(chave, JSON.stringify(dados)).catch(() => {});
   }, [dados, carregado]);
 
   // cronômetro da sessão
@@ -122,13 +132,21 @@ function Principal() {
   ]);
 
   const carregarDemo = () => {
-    const historico = [1, 2, 3, 5, 6].map((diasAtras, i) => {
+    // ~4 meses de treinos: 4 a 5 por semana, uma semana de pausa no meio e os últimos 4 dias seguidos
+    const diasTreinados = [];
+    for (let diasAtras = 1; diasAtras <= 115; diasAtras++) {
+      const pausa = diasAtras >= 40 && diasAtras <= 46;
+      const treina = diasAtras <= 4 || (!pausa && (diasAtras * 7) % 10 < 6);
+      if (treina) diasTreinados.push(diasAtras);
+    }
+    const historico = diasTreinados.map((diasAtras, i) => {
       const m = MODELOS_TREINO[i % MODELOS_TREINO.length];
+      const progresso = Math.floor((115 - diasAtras) / 14) * 2.5; // carga sobe a cada 2 semanas
       const exercicios = m.exercicios.slice(0, 4).map((nome, j) => ({
-        nome, series: [0, 1, 2].map((k) => ({ peso: 20 + j * 7.5 + (6 - diasAtras) * 2.5, reps: 12 - k * 2 })),
+        nome, series: [0, 1, 2].map((k) => ({ peso: 20 + j * 7.5 + progresso, reps: 12 - k * 2 - (i % 3 === 0 ? 1 : 0) })),
       }));
       const volume = exercicios.reduce((t, e) => t + e.series.reduce((a, x) => a + x.peso * x.reps, 0), 0);
-      return { id: uid(), nome: m.nome, data: diaOffset(-diasAtras), duracao: 2900 + i * 310, volume, series: 12, exercicios };
+      return { id: uid(), nome: m.nome, data: diaOffset(-diasAtras), duracao: 2900 + (i % 5) * 310, volume, series: 12, exercicios };
     });
     const achar = (id) => ALIMENTOS.find((a) => a.id === id);
     const refeicoes = [
@@ -187,7 +205,7 @@ function Principal() {
             />
           )}
           {aba === 'perfil' && (
-            <Perfil perfil={dados.perfil} metas={metas} historico={dados.historico} mudarPerfil={mudarPerfil} apagarTudo={apagarTudo} carregarDemo={carregarDemo} />
+            <Perfil usuario={usuario} sair={sair} perfil={dados.perfil} metas={metas} historico={dados.historico} mudarPerfil={mudarPerfil} apagarTudo={apagarTudo} carregarDemo={carregarDemo} />
           )}
         </ScrollView>
       </SafeAreaView>
@@ -211,9 +229,20 @@ function Principal() {
 }
 
 export default function App() {
+  const [usuario, setUsuario] = useState(undefined); // undefined = ainda verificando a sessão
+
+  useEffect(() => { carregarSessao().then(setUsuario); }, []);
+
+  const sair = () => Alert.alert('Sair da conta?', 'Seus treinos e refeições continuam salvos neste aparelho.', [
+    { text: 'Cancelar', style: 'cancel' },
+    { text: 'Sair', onPress: async () => { await encerrarSessao(); setUsuario(null); } },
+  ]);
+
   return (
     <SafeAreaProvider>
-      <Principal />
+      {usuario === undefined && <View style={{ flex: 1, backgroundColor: COR.fundo[0] }} />}
+      {usuario === null && <Autenticacao onEntrar={setUsuario} />}
+      {usuario && <Principal key={usuario.email} usuario={usuario} sair={sair} />}
     </SafeAreaProvider>
   );
 }

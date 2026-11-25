@@ -1,18 +1,31 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Treinos from './Treinos';
 import { COR } from '../tema';
 import { PROTOCOLOS } from '../dados';
 import { Vidro, Botao, Cabecalho, Estatistica, MetaItem } from '../componentes/ui';
 import { fmt, pad } from '../utils';
 import { s } from '../estilos';
 
-export default function Perfil({ perfil, metas, historico, mudarPerfil, apagarTudo, carregarDemo }) {
+export default function Perfil({ usuario, sair, perfil, metas, historico, mudarPerfil, apagarTudo, carregarDemo }) {
   const volumeTotal = historico.reduce((t, h) => t + h.volume, 0);
   return (
     <>
       <Cabecalho sub="Seus dados e objetivo" titulo="Perfil" />
+
+      <Vidro style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={[s.iconeRedondo, { backgroundColor: COR.acentoFundo, borderWidth: 1, borderColor: COR.acentoBorda }]}>
+          <Text style={{ color: COR.acento, fontWeight: '800', fontSize: 18 }}>{(usuario.nome || usuario.email)[0].toUpperCase()}</Text>
+        </View>
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <Text style={s.cardTitulo} numberOfLines={1}>{usuario.nome}</Text>
+          <Text style={s.mini} numberOfLines={1}>{usuario.email}</Text>
+        </View>
+        <View style={[s.selo, { flexDirection: 'row', alignItems: 'center' }]}>
+          <Ionicons name={usuario.provedor === 'google' ? 'logo-google' : 'mail-outline'} size={12} color={COR.acento} style={{ marginRight: 4 }} />
+          <Text style={s.seloTexto}>{usuario.provedor === 'google' ? 'Google' : 'E-mail'}</Text>
+        </View>
+      </Vidro>
 
       <Vidro style={{ flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 16 }}>
         <Estatistica rotulo="Treinos" valor={String(historico.length)} cor={COR.texto} />
@@ -61,6 +74,7 @@ export default function Perfil({ perfil, metas, historico, mudarPerfil, apagarTu
       </Vidro>
 
       <Botao titulo="Carregar dados de exemplo" icone="sparkles-outline" variante="secundario" onPress={carregarDemo} style={{ marginBottom: 12 }} />
+      <Botao titulo="Sair da conta" icone="log-out-outline" variante="secundario" onPress={sair} style={{ marginBottom: 12 }} />
       <Botao titulo="Apagar todos os dados" icone="trash-outline" variante="perigo" onPress={apagarTudo} />
     </>
   );
