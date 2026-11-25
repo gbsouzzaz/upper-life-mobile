@@ -51,6 +51,28 @@ export const calcularMetas = (perfil) => {
 };
 export const novaSerie = () => ({ id: uid(), peso: '', reps: '', feito: false });
 
+// Constância: quantos dias diferentes a pessoa treinou e as sequências de dias seguidos.
+// A sequência atual continua valendo se o último treino foi hoje ou ontem.
+export const constancia = (historico) => {
+  const dias = new Set(historico.map((h) => h.data));
+  const umDia = 86400000;
+  const meioDia = (chave) => new Date(`${chave}T12:00:00`).getTime();
+
+  let recorde = 0, corrente = 0, anterior = null;
+  [...dias].sort().forEach((chave) => {
+    const t = meioDia(chave);
+    corrente = anterior !== null && Math.round((t - anterior) / umDia) === 1 ? corrente + 1 : 1;
+    recorde = Math.max(recorde, corrente);
+    anterior = t;
+  });
+
+  const treinouHoje = dias.has(hoje());
+  let atual = 0;
+  for (let i = treinouHoje ? 0 : 1; dias.has(diaOffset(-i)); i++) atual++;
+
+  return { total: dias.size, atual, recorde, treinouHoje };
+};
+
 export const ESTADO_INICIAL = {
   perfil: { nome: '', peso: '75', objetivo: 'manter', metaPersonalizada: '2500' },
   diario: {},

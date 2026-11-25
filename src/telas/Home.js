@@ -2,8 +2,9 @@ import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COR } from '../tema';
-import { Vidro, Barra, Botao, Cabecalho, Macro, Anel, Info } from '../componentes/ui';
-import { fmt, chaveData, hoje, relogio, DIAS_CURTOS, dataExtenso, dataCurta } from '../utils';
+import { Vidro, Barra, Botao, Cabecalho, Macro, Anel, Info, Estatistica } from '../componentes/ui';
+import CalendarioTreinos from '../componentes/CalendarioTreinos';
+import { fmt, chaveData, hoje, relogio, DIAS_CURTOS, dataExtenso, dataCurta, constancia } from '../utils';
 import { s } from '../estilos';
 
 export default function Home({ perfil, metas, totais, agua, historico, sessao, irPara }) {
@@ -23,6 +24,8 @@ export default function Home({ perfil, metas, totais, agua, historico, sessao, i
   const volSemana = semana.reduce((t, d) => t + d.vol, 0);
   const treinosSemana = historico.filter((h) => semana.some((d) => d.chave === h.data)).length;
   const ultimo = historico[0];
+  const cons = useMemo(() => constancia(historico), [historico]);
+  const dias = (n) => (n === 1 ? '1 dia' : `${n} dias`);
 
   return (
     <>
@@ -82,6 +85,20 @@ export default function Home({ perfil, metas, totais, agua, historico, sessao, i
           </Vidro>
         </TouchableOpacity>
       </View>
+
+      <Vidro>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+          <Ionicons name="flame" size={20} color={cons.atual > 0 ? COR.acento : COR.fraco} />
+          <Text style={[s.cardTitulo, { marginLeft: 8, flex: 1 }]}>Constância</Text>
+          <Text style={s.mini}>{cons.treinouHoje ? 'Treino de hoje feito' : cons.atual > 0 ? 'Treine hoje pra manter' : 'Comece uma sequência hoje'}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 14 }}>
+          <Estatistica rotulo="seguidos agora" valor={dias(cons.atual)} cor={cons.atual > 0 ? COR.acento : COR.texto} />
+          <Estatistica rotulo="recorde" valor={dias(cons.recorde)} cor={COR.texto} />
+          <Estatistica rotulo="treinados" valor={dias(cons.total)} cor={COR.texto} />
+        </View>
+        <CalendarioTreinos historico={historico} />
+      </Vidro>
 
       <Vidro>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
